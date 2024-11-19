@@ -1,17 +1,80 @@
-import { getAddress } from "viem";
+import {
+  createPublicClient,
+  getAddress,
+  http,
+  type Address,
+  type PublicClient,
+} from "viem";
+import { arbitrum, fraxtal, optimism, mainnet } from "viem/chains";
 
-const RPC_URL = () => {
-  if (!process.env.RPC_URL) {
-    throw new Error("RPC_URL is not set");
-  }
-  return process.env.RPC_URL;
+export type ApiVault = {
+  name: string;
+  address: string;
+  assets: {
+    borrowed: {
+      symbol: string;
+    };
+    collateral: {
+      symbol: string;
+    };
+  };
 };
 
-const START_BLOCK = () => {
-  if (!process.env.START_BLOCK) {
-    throw new Error("START_BLOCK is not set");
+export type Vault = {
+  name: string;
+  address: Address;
+};
+
+export enum SupportedChain {
+  Ethereum = "ethereum",
+  Arbitrum = "arbitrum",
+  //   Fraxtal = "fraxtal",
+  //   Optimism = "optimism",
+}
+
+const getRpcUrl = (chain: SupportedChain): string | undefined => {
+  if (!process.env[`${chain.toUpperCase()}_RPC_URL`]) {
+    throw new Error(`${chain.toUpperCase()}_RPC_URL is not set`);
   }
-  return BigInt(process.env.START_BLOCK);
+  return process.env[`${chain.toUpperCase()}_RPC_URL`];
+};
+
+const VIEM_CLIENT: Record<SupportedChain, PublicClient> = {
+  [SupportedChain.Arbitrum]: createPublicClient({
+    chain: arbitrum,
+    transport: http(getRpcUrl(SupportedChain.Arbitrum)),
+    batch: {
+      multicall: true,
+    },
+  }),
+  [SupportedChain.Ethereum]: createPublicClient({
+    chain: mainnet,
+    transport: http(getRpcUrl(SupportedChain.Ethereum)),
+    batch: {
+      multicall: true,
+    },
+  }),
+  //   [SupportedChain.Fraxtal]: createPublicClient({
+  //     chain: fraxtal,
+  //     transport: http(getRpcUrl(SupportedChain.Fraxtal)),
+  //     batch: {
+  //       multicall: true,
+  //     },
+  //   }),
+  //   [SupportedChain.Optimism]: createPublicClient({
+  //     chain: optimism,
+  //     transport: http(getRpcUrl(SupportedChain.Optimism)),
+  //     batch: {
+  //       multicall: true,
+  //     },
+  //   }),
+};
+
+const START_BLOCK: Record<SupportedChain, bigint> = {
+  [SupportedChain.Ethereum]: BigInt(19422666),
+  [SupportedChain.Arbitrum]: BigInt(193652607),
+  //   [SupportedChain.Fraxtal]: BigInt(9466075),
+  //   [SupportedChain.Optimism]: BigInt(125072267),
 };
 
 const LLAMALEND_VAULTS = [
@@ -26,7 +89,7 @@ const LLAMALEND_VAULTS = [
 ];
 
 export const Config = {
-  RPC_URL,
   LLAMALEND_VAULTS,
+  VIEM_CLIENT,
   START_BLOCK,
 };
