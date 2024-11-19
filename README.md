@@ -13,4 +13,6 @@ https://lend.curve.fi/#/arbitrum/markets?type=supply
 
 ## Run
 
-`bun index.ts --user <userAddress>`
+Available chains: ethereum, arbitrum, optimism
+
+`bun index.ts --user <userAddress> --chain <chain>`
